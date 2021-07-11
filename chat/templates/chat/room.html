@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatting Room</title>
+</head>
+<body>
+    <textarea name="chat-log" id="chat-log" cols="100" rows="20"></textarea><br>
+    <input type="text" id='chat-message' size="100" placeholder="Enter A Message"><br>
+    <input type="button" id='chat-send' value="Send">
+
+    {{room_name | json_script:'room-name'}}  <!-- <script id='room-name'>{}</script> -->
+   
+    <script>
+        const roomName=JSON.parse(document.getElementById('room-name').textContent);
+
+
+        // const chatSocket = new WebSocket(
+        //     'ws://'
+        //     + window.location.host
+        //     + '/ws/chat/'
+        //     + roomName
+        //     + '/'
+        // );
+
+        const chatSocket=new WebSocket(`ws://${window.location.host}/ws/chat/${roomName}/`);
+
+
+
+        chatSocket.onmessage= function(e) {
+            const data=JSON.parse(e.data);
+            document.querySelector('#chat-log').value+=(data.message+'\n');
+        };
+
+        // chatSocket.onclose= function(e) {
+        //     console.error('Chat Socket Closed Unexpectedly');
+        // }
+
+        document.querySelector('#chat-message').focus();
+        document.querySelector('#chat-message').onkeyup= function(e) {
+          if(e.keyCode === 13){ //when press enter auto send
+                document.querySelector('#chat-send').click();
+          };  
+        };
+        
+        document.querySelector('#chat-send').onclick= function(e) {
+            const message=document.querySelector('#chat-message').value;
+            chatSocket.send(JSON.stringify({'message':message}));
+            document.querySelector('#chat-message').value='';
+        }
+
+    </script>
+</body>
+</html>
